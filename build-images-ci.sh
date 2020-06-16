@@ -112,7 +112,7 @@ function buildx_images_ci::create_push_manifest(){
   for arch in ${BUILD_ARCH}; do
     if [ ${arch} == "arm" ]; then
       ARCH="arm --variant v7"
-    elif
+    elif [ ${arch} == "arm64" ];
       ARCH="arm64 --variant v8"
     else
       ARCH="${arch}"
