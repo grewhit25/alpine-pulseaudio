@@ -13,18 +13,20 @@
 #     - stage: Deploy docker image
 #       script:
 #         - source ./multi-arch-docker-ci.sh
-#         - set -ex; buildx_images_ci::main; set +x
+#         - set -ex; build_ci_images::main; set +x
 #
 #  Platforms: linux/amd64, linux/arm64, linux/riscv64, linux/ppc64le,
 #  linux/s390x, linux/386, linux/arm/v7, linux/arm/v6
 # More information about Linux environment constraints can be found at:
 # https://nexus.eddiesinentropy.net/2020/01/12/Building-Multi-architecture-Docker-Images-With-Buildx/
 
+# Setup ci environment
+
 function _version() {
   printf '%02d' $(echo "$1" | tr . ' ' | sed -e 's/ 0*/ /g') 2>/dev/null
 }
 
-function buildx_images_ci::install_docker_buildx() {
+function setup_ci_environment::install_docker_buildx() {
   # Check kernel version.
   local -r kernel_version="$(uname -r)"
   if [[ "$(_version "$kernel_version")" < "$(_version '4.8')" ]]; then
@@ -65,21 +67,20 @@ function buildx_images_ci::install_docker_buildx() {
 # Env:
 #   DOCKER_USERNAME ... user name of Docker Hub account
 #   DOCKER_PASSWORD ... password of Docker Hub account
-function buildx_images_ci::login_to_docker_hub() {
+function setup_ci_environment::login_to_docker_hub() {
   echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 
 }
-
 
 # Run buildx build and push.
 # Env:
 #   DOCKER_PLATFORMS ... space separated list of Docker platforms to build.
 # Args:
 #   Optional additional arguments for 'docker buildx build'.
-function buildx_images_ci::buildx() {
+function build_ci_images::buildx() {
   docker buildx build \
     --platform "${DOCKER_PLATFORMS// /,}" \
-    --load \
+    --push \
     --progress plain \
     -f Dockerfile.multi-arch \
     "$@" \
@@ -91,35 +92,10 @@ function buildx_images_ci::buildx() {
 #   DOCKER_PLATFORMS ... space separated list of Docker platforms to build.
 #   DOCKER_BASE ........ docker image base name to build
 #   TAGS ............... space separated list of docker image tags to build.
-function buildx_images_ci::build_and_push_image() {
+function build_ci_images::build_and_push_all() {
   for tag in $TAGS; do
-    buildx_images_ci::buildx -t "$DOCKER_BASE:$tag"
-    docker push "$DOCKER_BASE:$tag"
+    build_ci_images::buildx -t "$DOCKER_BASE:$tag"
   done
-}
-
-# build manifest for indevidual images
-# MANIFEST_ARCH='amd64 arm64 arm'
-# 
-function buildx_images_ci::create_push_manifest(){
-
-  echo "Create manifest and push image"
-
-  local MANIFESTS=""
-  for arch in ${BUILD_ARCH}; do MANIFESTS="${MANIFESTS} ${DOCKER_BASE}:${arch}"; done
-  docker manifest create --amend ${DOCKER_BASE} ${MANIFESTS};
-
-  for arch in ${BUILD_ARCH}; do
-    if [ ${arch} == "arm" ]; then
-      ARCH="arm --variant v7"
-    else
-      ARCH="${arch}"
-    fi
-  docker manifest annotate ${DOCKER_BASE} ${DOCKER_BASE}:${arch} \
-    --os 'linux' --arch ${ARCH}
-  done
-
-  docker manifest push ${DOCKER_BASE}
 }
 
 # Test all pushed docker images.
@@ -127,35 +103,44 @@ function buildx_images_ci::create_push_manifest(){
 #   DOCKER_PLATFORMS ... space separated list of Docker platforms to test.
 #   DOCKER_BASE ........ docker image base name to test
 #   TAGS ............... space separated list of docker image tags to test.
-function buildx_images_ci::test_all() {
+function build_ci_images::test_all() {
   for platform in $DOCKER_PLATFORMS; do
     for tag in $TAGS; do
       image="${DOCKER_BASE}:${tag}"
       msg="Testing docker image $image on platform $platform"
       line="${msg//?/=}"
-      printf '\n%s\n%s\n%s\n' "${line}" "${msg}" "${line}"
+      printf '\n%s\n%s\n%s\n' "\n${line}" "${msg}" "${line}"
       docker pull -q --platform "$platform" "$image"
 
       echo -n "Image architecture: "
       docker run --rm --entrypoint /bin/sh "$image" -c 'uname -m'
 
-      # Run your test on the built image.
-      docker run --rm -v "$PWD:/mnt" -w /mnt "$image" echo "Running on $(uname -m)"
+      # Run test on the built image.
+      #docker run --rm  --entrypoint [] "$image" command yarn version
     done
+      
   done
 }
 
 # Setup ci environment
-function buildx_images_ci::setup_environment() {
-  cp Dockerfile Dockerfile.multi-arch
-  buildx_images_ci::install_docker_buildx
-  buildx_images_ci::login_to_docker_hub
+function setup_ci_environment::main() {
+  setup_ci_environment::install_docker_buildx
+  setup_ci_environment::login_to_docker_hub
 }
 
-# Build and push images
-function buildx_images_ci::build_images() {
-  # build image
-  buildx_images_ci::build_and_push_image
-  buildx_images_ci::create_push_manifest
+# Build images
+function build_ci_images::main() {
+  echo '** Next line need to move to env once dockerhub username updated **'
+  #export DOCKER_BASE=${DOCKER_REGISTRY}/${TRAVIS_REPO_SLUG#*/}
+  # Build server
   
+  export DOCKER_BASE=${DOCKER_REGISTRY}'/alpine-snapcast'
+  cp Dockerfile Dockerfile.multi-arch
+  build_ci_images::build_and_push_all
+  #export DOCKER_BASE=${DOCKER_REGISTRY}'/debian-snapserver'
+  #cp Dockerfile-Dserver Dockerfile.multi-arch
+  #build_ci_images::build_and_push_all
+  #export DOCKER_BASE=${DOCKER_REGISTRY}'/debian-snapclient'
+  #cp Dockerfile-Dclient Dockerfile.multi-arch
+  #build_ci_images::build_and_push_all
 }
