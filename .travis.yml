@@ -1,7 +1,7 @@
 sudo: required
 services:
 - docker
-language: shell
+language: bash
 dist: bionic
 os: linux
 env:
