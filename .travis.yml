@@ -26,7 +26,7 @@ jobs:
   include:
   - stage: build
     env:
-    - DOCKER_PLATFORMS='linux/arm64'
+    - DOCKER_PLATFORMS='linux/arm64/v8'
     - TAGS='arm64'
     - S6_ARCH='aarch64'
     script: *1
@@ -36,6 +36,6 @@ jobs:
     - TAGS='arm'
     - S6_ARCH='armhf'
     script: *1
-after_script:
+after_success:
 - source ./build-images-ci.sh
 - set -ex; buildx_images_ci::create_push_manifest; set +x
