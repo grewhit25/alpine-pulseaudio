@@ -130,7 +130,7 @@ function setup_ci_environment::main() {
 
 # Build images
 function build_ci_images::main() {
-  export DOCKER_BASE=${DOCKER_REGISTRY}/${TRAVIS_REPO_SLUG}
+  export DOCKER_BASE=${TRAVIS_REPO_SLUG}
   cp ${DOCKERFILE} Dockerfile.multi-arch
   build_ci_images::build_and_push_all
 }
