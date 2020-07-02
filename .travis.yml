@@ -7,35 +7,17 @@ os: linux
 env:
   global:
   - TRAVIS_SECURE_ENV_VARS=true
-  - BUILD_ARCH='arm64 arm'
+  - DOCKER_PLATFORMS='linux/amd64 linux/arm64/v8 linux/arm/v7'
   - DOCKERFILE='Dockerfile'
   - TAGS='latest'
   - secure: h/fwLqAXjYoV3F9lmGSsObYHeD9sQiyltc10UqneYcnoXG/xV4gGZluSc8pQukqRL6pnR/y9L5HAPKXKmzDFlYfCoc6lnCmKew1j4J2lccQD2n+ZR1C+pW7sLhM34Ed+sLv/PXFTNlfuAzm11inyu+F9QV7bTNHn4Od7G+w8GCjeLv5CCncrrzjGcentg9QPFJY2is4mHDb5j9EK5Ox7dnr2fNMdPRT23jtiQoFsX6cjJ3qHDB+v7hYb1CqgWKKk7VGCDJjaDN1yvMscnfED69+SO0467Z5FJP11sJPb/MO0b0WDfmx8M/xbX4qql3yswBetXWicRKKM8E2eYKI1ZW9/whSv4zTvZhJRA9UY6oalfYF1RsfZ1RbkFA6KR2B7Lg+gRMncJi1N5fMZ3mS+LWLOilluCgPRHP0jDZdCipz1tHZ0JtnoofqCeWL7Tj4z/JDNIXsu4PzzO0VORMKiI8zQuFL129TuLJxj/BL4EdhVnaa5LZs0BtEfQCXRuKuPnhaDq731PVVHd39fddYD9WDGlXSsvmDkZNir+Q0ee9J+iROAAI+T4o0Bl7rFJhgMne6crGbTzgx82F35h8+O9SOYOiHGVBVAPerUUCDWSNp0GTTFjbYPv4/CBKLb7t/idV8M8GQ/cJ4papFn1DMuRjq60d61saK4xcxjvq7IBhw=
   - secure: ZItN5JHgydowEoIf/X4Rp0fpaXHgf0fUreXLpgQNjzDSadSs75YzJmDy0/pcsJMTLIcrRu4cGiOT4+GgR6Qt+c1hITLs6QmgLGpOw1YqSTEZ90go5Z1WZZoFTNLasz4gfqMUZGDKQW7pzf+E4rHYO7Kj5jzPMD2ZJ1eXsx6ddr5Hdk2pjJUV3CCi9rZTBobzTugVjm7LWJYxMLBOmLFzKT3N9M7gxkpr99rNocjtmP9AXVqRbWnGQdBgj8W4Ty8Shf1yvHFtgvzS+H9X3s12Ag5QYrrJpM5elM/bFnX8kuolaQb+u5SJewH5pqd1rAzXHTZcmlbKEqeAOs7V4enIXfyBg7FnVOLlcjBPwVJjkwgt3/+fTRGxrUJ7O/zkNCm71VtbYdPY9idLbxQhFDWuEpag80VS1ZrqbDhvcwpihQHQCJ0WdPktFZ0pi04qRC5dEkq7p7YNFECnp4hNz8ouZ5hp1Ohf+a8cs1ReYriv5b+bmeBxUzu8PgVk+IlKt8OO6ttejwCKAvCUz2Fv4DxTxcuq7mNcGqHHfpjmsNSPpybHFierR+4eeNIRnrc7fPUOR7vSPdDy0oQy08F6qoT7p7rzG689bVhuB0dwIIIUNzdrBku73AVYEcpH2/hr0CUDtRx7wGD4hIULaH1kh8Roj3siHuQyWdpOFM+s5QkdMzY=
   - secure: A7XVvG1NDI20SJ5HlwHYvUpLMLf/q7xAcTHyvFWJofqrJH08NT1x69fwJ9V6FA4GvqTbN6KaLL37gZvJy+FF3X1GjmGBlcKy5/iDdtTCe39qvj1jBfNk5eQFG0utuLqSaTzuannGRmS6F0ZHJ/XOIgfHZoA/Ky30I2UJxepX0PvDqsXC4md6hAkrfCJ9Njtwa87x3lPAitqHIHCvDma7W2oByvjXInf5I56t7MDF0NNeVoJ92BwprDXlkll0Zhh+ngzyhb1Ni0vwHNcwAx4ejVZOGaT+bDTdPrqfD34zVAphciIg1YeTQl3YvgWw6s5JV0NBBvekPJOw6m8lo+qYkbyMBQm9cRrFYESxe55IqB+3BTNZE928cikMs5tVfXXLSXLsBwWuj1a12HJ6BDBhpC4/oKYItGOTFKCEI/7ALCZE4oqBOO+4NNTouNRZTP3N8zZHDfBexOC1sMZklsXWZ6mcK9wbJslRrDI6UJGQVh8HNUE1VhnmZScNcmNdsmPJOVCFPfQ8PMvgOcryB2leS21ImGtKc/YxjGlRGrEMU8hUNsUrn100OaDttzhOOk5HvFeRN0EJyfw+DLnkcWsgXSkOQ5ggbgJWjkxOapWHKSovSpunKK2yPOPMh3Ak5MyHfW//SNTLxvh5QLBGHX7P5lhL/XoQPw0qFCdzsGexP6o=
-install:
-- source ./build-images-ci.sh
-- set -ex; buildx_images_ci::setup_environment; set +x
-defaults:
-  script: &1
-  - DOCKER_BASE=${TRAVIS_REPO_SLUG}
-  - source ./build-images-ci.sh
-  - set -ex; buildx_images_ci::build_and_push_image; set +x
 jobs:
   fast_finish: true
   include:
-  - stage: build
-    env:
-    - DOCKER_PLATFORMS='linux/arm64/v8'
-    - TAGS='arm64'
-    - S6_ARCH='aarch64'
-    script: *1
-  - stage: build
-    env:
-    - DOCKER_PLATFORMS='linux/arm/v7'
-    - TAGS='arm'
-    - S6_ARCH='armhf'
-    script: *1
-after_success:
-- source ./build-images-ci.sh
-- set -ex; buildx_images_ci::create_push_manifest; set +x
+  - stage: Deploy docker images
+    script:
+    - source ./buildx_ci_images.sh
+    - set -ex; setup_ci_environment::main; set +x
+    - set -ex; build_ci_images::main; set +x
