@@ -1,15 +1,15 @@
 #!/usr/bin/with-contenv sh
 
-DISABLEBLUETOOTH="${DISABLEBLUETOOTH:-true}";
-if ("${DISABLEBLUETOOTH}" == "true"); then
+DISABLEBLUETOOTH="${ENABLEBLUETOOTH:-false}";
+if ("${ENABLEBLUETOOTH}" == "true"); then
+  echo "Bluetooth enabled..."
+else
   echo "Bluetooth disabled...";
 	mv /etc/services.d/bluetooth /defaults/;
-else
-  echo "Bluetooth enabled..."
 fi
 
-AVAHI="${AVAHI:-true}";
-if ("${AVAHI}" == 'true'); then
+ENABLEAVAHI="${ENABLEAVAHI:-false}";
+if ("${ENABLEAVAHI}" == 'true'); then
   echo "Enabling Avahi.."
   # make folders
   mkdir -p /var/run/dbus
